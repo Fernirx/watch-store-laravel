@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
+use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
 {
@@ -380,6 +381,79 @@ class AuthController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Password reset failed',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Redirect to Google OAuth
+     */
+    public function googleRedirect()
+    {
+        try {
+            return Socialite::driver('google')->stateless()->redirect();
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to redirect to Google',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Handle Google OAuth callback
+     */
+    public function googleCallback()
+    {
+        try {
+            $googleUser = Socialite::driver('google')->stateless()->user();
+
+            // Check if user exists
+            $user = User::where('email', $googleUser->getEmail())->first();
+
+            if (!$user) {
+                // Create new user
+                $user = User::create([
+                    'name' => $googleUser->getName(),
+                    'email' => $googleUser->getEmail(),
+                    'avatar_url' => $googleUser->getAvatar(),
+                    'provider' => 'GOOGLE',
+                    'provider_id' => $googleUser->getId(),
+                    'email_verified_at' => now(),
+                ]);
+            } else {
+                // Update existing user with Google info if not set
+                if (!$user->provider_id) {
+                    $user->update([
+                        'provider' => 'GOOGLE',
+                        'provider_id' => $googleUser->getId(),
+                        'avatar_url' => $googleUser->getAvatar(),
+                        'email_verified_at' => now(),
+                    ]);
+                }
+            }
+
+            // Revoke old tokens (optional)
+            $user->tokens()->delete();
+
+            $token = $user->createToken('auth_token')->plainTextToken;
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Google login successful',
+                'data' => [
+                    'user' => $user,
+                    'access_token' => $token,
+                    'token_type' => 'Bearer',
+                ],
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Google authentication failed',
                 'error' => $e->getMessage(),
             ], 500);
         }

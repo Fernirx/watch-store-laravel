@@ -24,6 +24,10 @@ Route::post('/register/verify', [AuthController::class, 'verifyRegisterOtp']); /
 Route::post('/forgot-password/send-otp', [AuthController::class, 'sendForgotPasswordOtp']);
 Route::post('/forgot-password/reset', [AuthController::class, 'resetPassword']);
 
+// OAuth Google Login
+Route::get('/auth/google', [AuthController::class, 'googleRedirect']);
+Route::get('/auth/google/callback', [AuthController::class, 'googleCallback']);
+
 // Public Products & Catalog (read-only)
 Route::get('/categories', [CategoryController::class, 'index']);
 Route::get('/categories/{id}', [CategoryController::class, 'show']);
