@@ -19,7 +19,7 @@ const categoryService = {
 
   // Tạo danh mục mới
   createCategory: async (categoryData) => {
-    // categoryData: { name, slug, description, image (File), is_active }
+    // categoryData: { name, description, image (File), is_active }
     const formData = new FormData();
 
     Object.keys(categoryData).forEach(key => {
@@ -46,7 +46,9 @@ const categoryService = {
       }
     });
 
-    const response = await axios.put(`/categories/${id}`, formData, {
+    // Laravel không hỗ trợ PUT với multipart/form-data
+    // Sử dụng POST với _method=PUT
+    const response = await axios.post(`/categories/${id}`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },

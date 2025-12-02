@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import productService from '../../services/productService';
 import categoryService from '../../services/categoryService';
 import brandService from '../../services/brandService';
+import { formatPriceInput, parsePrice } from '../../utils/formatPrice';
 
 const ProductForm = () => {
   const { id } = useParams();
@@ -49,7 +50,7 @@ const ProductForm = () => {
   const fetchProduct = async () => {
     try {
       setLoading(true);
-      const response = await productService.getProductById(id);
+      const response = await productService.getProduct(id);
       const product = response.data;
 
       setFormData({
@@ -99,12 +100,12 @@ const ProductForm = () => {
 
       const submitData = new FormData();
       submitData.append('name', formData.name);
-      submitData.append('description', formData.description);
+      submitData.append('description', formData.description || '');
       submitData.append('price', formData.price);
       submitData.append('stock_quantity', formData.stock_quantity);
       submitData.append('category_id', formData.category_id);
       submitData.append('brand_id', formData.brand_id);
-      submitData.append('is_active', formData.is_active ? 1 : 0);
+      submitData.append('is_active', formData.is_active ? '1' : '0');
 
       if (formData.sale_price) {
         submitData.append('sale_price', formData.sale_price);
@@ -113,6 +114,18 @@ const ProductForm = () => {
       if (formData.image) {
         submitData.append('image', formData.image);
       }
+
+      // Debug logging
+      console.log('Submitting product:', {
+        name: formData.name,
+        price: formData.price,
+        sale_price: formData.sale_price,
+        category_id: formData.category_id,
+        brand_id: formData.brand_id,
+        stock_quantity: formData.stock_quantity,
+        is_active: formData.is_active,
+        has_image: !!formData.image,
+      });
 
       if (isEdit) {
         submitData.append('_method', 'PUT');
@@ -126,10 +139,11 @@ const ProductForm = () => {
       navigate('/admin/products');
     } catch (error) {
       console.error('Error saving product:', error);
+      console.error('Error response:', error.response?.data);
       alert(
         `Không thể ${isEdit ? 'cập nhật' : 'tạo'} sản phẩm: ${
           error.response?.data?.message || error.message
-        }`
+        }\n\nChi tiết: ${JSON.stringify(error.response?.data?.errors || {})}`
       );
     } finally {
       setLoading(false);
@@ -137,39 +151,51 @@ const ProductForm = () => {
   };
 
   if (loading && isEdit) {
-    return <div className="loading">Đang tải...</div>;
+    return (
+      <div className="loading">
+        <div className="spinner"></div>
+        <p>Đang tải thông tin sản phẩm...</p>
+      </div>
+    );
   }
 
   return (
     <div className="admin-form-container">
-      <div className="admin-header">
-        <h1>{isEdit ? 'Sửa Sản Phẩm' : 'Thêm Sản Phẩm Mới'}</h1>
-        <button onClick={() => navigate('/admin/products')} className="btn-back">
-          Quay lại
+      {/* Page Header */}
+      <div className="admin-page-header">
+        <div>
+          <h1>{isEdit ? '✏️ Sửa Sản Phẩm' : '➕ Thêm Sản Phẩm Mới'}</h1>
+          <div className="admin-breadcrumb">
+            <a href="/admin">Dashboard</a>
+            <span>/</span>
+            <a href="/admin/products">Sản phẩm</a>
+            <span>/</span>
+            <span>{isEdit ? 'Sửa' : 'Thêm mới'}</span>
+          </div>
+        </div>
+        <button onClick={() => navigate('/admin/products')} className="btn btn-secondary">
+          ← Quay lại
         </button>
       </div>
 
       <form onSubmit={handleSubmit} className="admin-form">
-        <div className="form-row">
-          <div className="form-group">
-            <label htmlFor="name">
-              Tên sản phẩm <span className="required">*</span>
-            </label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-              className="form-control"
-            />
-          </div>
+        <div className="form-group">
+          <label htmlFor="name" className="required">Tên sản phẩm</label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            required
+            className="form-control"
+            placeholder="Nhập tên sản phẩm..."
+          />
+        </div>
 
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem' }}>
           <div className="form-group">
-            <label htmlFor="category_id">
-              Danh mục <span className="required">*</span>
-            </label>
+            <label htmlFor="category_id" className="required">Danh mục</label>
             <select
               id="category_id"
               name="category_id"
@@ -188,9 +214,7 @@ const ProductForm = () => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="brand_id">
-              Thương hiệu <span className="required">*</span>
-            </label>
+            <label htmlFor="brand_id" className="required">Thương hiệu</label>
             <select
               id="brand_id"
               name="brand_id"
@@ -210,7 +234,7 @@ const ProductForm = () => {
         </div>
 
         <div className="form-group">
-          <label htmlFor="description">Mô tả</label>
+          <label htmlFor="description">Mô tả sản phẩm</label>
           <textarea
             id="description"
             name="description"
@@ -218,45 +242,52 @@ const ProductForm = () => {
             onChange={handleChange}
             rows="4"
             className="form-control"
+            placeholder="Nhập mô tả chi tiết về sản phẩm..."
           />
         </div>
 
-        <div className="form-row">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
           <div className="form-group">
-            <label htmlFor="price">
-              Giá gốc (VNĐ) <span className="required">*</span>
-            </label>
+            <label htmlFor="price" className="required">Giá gốc (₫)</label>
             <input
-              type="number"
+              type="text"
               id="price"
               name="price"
-              value={formData.price}
-              onChange={handleChange}
+              value={formData.price ? formatPriceInput(formData.price.toString()) : ''}
+              onChange={(e) => {
+                const numericValue = e.target.value.replace(/\D/g, '');
+                setFormData(prev => ({ ...prev, price: numericValue }));
+              }}
               required
-              min="0"
-              step="1000"
               className="form-control"
+              placeholder="Ví dụ: 41.240.000"
             />
+            <small style={{ color: '#64748b', fontSize: '0.875rem' }}>
+              {formData.price ? `= ${formatPriceInput(formData.price.toString())} ₫` : 'Nhập giá bằng số (VD: 41240000 hoặc 41.240.000)'}
+            </small>
           </div>
 
           <div className="form-group">
-            <label htmlFor="sale_price">Giá khuyến mãi (VNĐ)</label>
+            <label htmlFor="sale_price">Giá khuyến mãi (₫)</label>
             <input
-              type="number"
+              type="text"
               id="sale_price"
               name="sale_price"
-              value={formData.sale_price}
-              onChange={handleChange}
-              min="0"
-              step="1000"
+              value={formData.sale_price ? formatPriceInput(formData.sale_price.toString()) : ''}
+              onChange={(e) => {
+                const numericValue = e.target.value.replace(/\D/g, '');
+                setFormData(prev => ({ ...prev, sale_price: numericValue }));
+              }}
               className="form-control"
+              placeholder="Ví dụ: 35.000.000"
             />
+            <small style={{ color: '#64748b', fontSize: '0.875rem' }}>
+              {formData.sale_price ? `= ${formatPriceInput(formData.sale_price.toString())} ₫` : 'Để trống nếu không có khuyến mãi'}
+            </small>
           </div>
 
           <div className="form-group">
-            <label htmlFor="stock_quantity">
-              Số lượng tồn kho <span className="required">*</span>
-            </label>
+            <label htmlFor="stock_quantity" className="required">Số lượng tồn kho</label>
             <input
               type="number"
               id="stock_quantity"
@@ -266,12 +297,13 @@ const ProductForm = () => {
               required
               min="0"
               className="form-control"
+              placeholder="0"
             />
           </div>
         </div>
 
         <div className="form-group">
-          <label htmlFor="image">Hình ảnh</label>
+          <label htmlFor="image">Hình ảnh sản phẩm</label>
           <input
             type="file"
             id="image"
@@ -281,34 +313,46 @@ const ProductForm = () => {
             className="form-control"
           />
           {imagePreview && (
-            <div className="image-preview">
-              <img src={imagePreview} alt="Preview" />
+            <div style={{ marginTop: '1rem' }}>
+              <img
+                src={imagePreview}
+                alt="Preview"
+                style={{
+                  width: '100%',
+                  maxWidth: '400px',
+                  height: '300px',
+                  objectFit: 'cover',
+                  borderRadius: '0.5rem',
+                  border: '2px solid #e2e8f0'
+                }}
+              />
             </div>
           )}
         </div>
 
         <div className="form-group">
-          <label className="checkbox-label">
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
             <input
               type="checkbox"
               name="is_active"
               checked={formData.is_active}
               onChange={handleChange}
+              style={{ width: '18px', height: '18px', cursor: 'pointer' }}
             />
-            <span>Kích hoạt sản phẩm</span>
+            <span style={{ fontWeight: '500' }}>Kích hoạt sản phẩm (hiển thị trên trang web)</span>
           </label>
         </div>
 
-        <div className="form-actions">
+        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '2rem', paddingTop: '2rem', borderTop: '1px solid #e2e8f0' }}>
           <button
             type="button"
             onClick={() => navigate('/admin/products')}
-            className="btn-secondary"
+            className="btn btn-secondary"
           >
-            Hủy
+            ✕ Hủy
           </button>
-          <button type="submit" disabled={loading} className="btn-primary">
-            {loading ? 'Đang xử lý...' : isEdit ? 'Cập nhật' : 'Tạo mới'}
+          <button type="submit" disabled={loading} className="btn btn-primary">
+            {loading ? '⏳ Đang xử lý...' : isEdit ? '💾 Cập nhật' : '✓ Tạo mới'}
           </button>
         </div>
       </form>

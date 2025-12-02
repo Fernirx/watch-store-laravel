@@ -1,10 +1,12 @@
-import { Link, Outlet, useNavigate } from 'react-router-dom';
+import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useEffect } from 'react';
+import '../../styles/admin.css';
 
 const AdminLayout = () => {
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -23,42 +25,67 @@ const AdminLayout = () => {
     return null;
   }
 
+  const isActive = (path) => {
+    if (path === '/admin') {
+      return location.pathname === '/admin';
+    }
+    return location.pathname.startsWith(path);
+  };
+
   return (
     <div className="admin-layout">
       {/* Admin Sidebar */}
       <aside className="admin-sidebar">
         <div className="admin-brand">
-          <h2>Admin Panel</h2>
+          <h2>⌚ Watch Store</h2>
           <p>{user?.name}</p>
         </div>
 
         <nav className="admin-nav">
-          <Link to="/admin" className="nav-item">
+          <Link
+            to="/admin"
+            className={`nav-item ${isActive('/admin') ? 'active' : ''}`}
+          >
             Dashboard
           </Link>
-          <Link to="/admin/products" className="nav-item">
-            Products
+          <Link
+            to="/admin/products"
+            className={`nav-item ${isActive('/admin/products') ? 'active' : ''}`}
+          >
+            Sản phẩm
           </Link>
-          <Link to="/admin/categories" className="nav-item">
-            Categories
+          <Link
+            to="/admin/categories"
+            className={`nav-item ${isActive('/admin/categories') ? 'active' : ''}`}
+          >
+            Danh mục
           </Link>
-          <Link to="/admin/brands" className="nav-item">
-            Brands
+          <Link
+            to="/admin/brands"
+            className={`nav-item ${isActive('/admin/brands') ? 'active' : ''}`}
+          >
+            Thương hiệu
           </Link>
-          <Link to="/admin/orders" className="nav-item">
-            Orders
+          <Link
+            to="/admin/orders"
+            className={`nav-item ${isActive('/admin/orders') ? 'active' : ''}`}
+          >
+            Đơn hàng
           </Link>
-          <Link to="/admin/users" className="nav-item">
-            Users
+          <Link
+            to="/admin/users"
+            className={`nav-item ${isActive('/admin/users') ? 'active' : ''}`}
+          >
+            Người dùng
           </Link>
         </nav>
 
         <div className="admin-footer">
           <Link to="/" className="nav-item">
-            View Site
+            🏠 Xem trang web
           </Link>
           <button onClick={handleLogout} className="btn-logout">
-            Logout
+            🚪 Đăng xuất
           </button>
         </div>
       </aside>

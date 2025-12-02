@@ -57,7 +57,9 @@ const productService = {
   // Cập nhật sản phẩm
   updateProduct: async (id, productData) => {
     // productData có thể là FormData nếu có upload ảnh
-    const response = await axios.put(`/products/${id}`, productData, {
+    // Laravel không hỗ trợ PUT với multipart/form-data
+    // Sử dụng POST với _method=PUT
+    const response = await axios.post(`/products/${id}`, productData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -84,7 +86,7 @@ const productService = {
 
   // Cập nhật danh mục
   updateCategory: async (id, categoryData) => {
-    const response = await axios.put(`/categories/${id}`, categoryData, {
+    const response = await axios.post(`/categories/${id}`, categoryData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -111,7 +113,7 @@ const productService = {
 
   // Cập nhật thương hiệu
   updateBrand: async (id, brandData) => {
-    const response = await axios.put(`/brands/${id}`, brandData, {
+    const response = await axios.post(`/brands/${id}`, brandData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },

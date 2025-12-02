@@ -223,6 +223,12 @@ class ProductSeeder extends Seeder
         ];
 
         foreach ($products as $product) {
+            if (Product::where('sku', $product['sku'])->exists()) {
+                continue;
+            }
+            if (Product::where('name', $product['name'])->exists()) {
+                continue;
+            }
             Product::create($product);
         }
     }

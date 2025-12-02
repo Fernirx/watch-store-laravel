@@ -93,8 +93,8 @@ class ProductController extends Controller
                 'description' => 'nullable|string',
                 'price' => 'required|numeric|min:0',
                 'sale_price' => 'nullable|numeric|min:0',
-                'sku' => 'required|string|unique:products,sku',
                 'stock_quantity' => 'required|integer|min:0',
+                'image' => 'nullable|image|max:2048',
                 'images' => 'nullable|array',
                 'images.*' => 'image|max:2048',
                 'specifications' => 'nullable|array',
@@ -109,8 +109,16 @@ class ProductController extends Controller
                 'is_active' => 'boolean',
             ]);
 
-            // Upload images to Cloudinary if provided
-            if ($request->hasFile('images')) {
+            // Auto-generate SKU if not provided
+            $validated['sku'] = $validated['sku'] ?? 'WATCH-' . time() . '-' . rand(1000, 9999);
+
+            // Upload single image to Cloudinary if provided
+            if ($request->hasFile('image')) {
+                $uploadedImage = $this->cloudinaryService->upload($request->file('image'), 'watch-store/products');
+                $validated['images'] = [$uploadedImage];
+            }
+            // Or upload multiple images
+            elseif ($request->hasFile('images')) {
                 $uploadedImages = $this->cloudinaryService->uploadMultiple($request->file('images'), 'watch-store/products');
                 $validated['images'] = $uploadedImages;
             }
@@ -166,8 +174,8 @@ class ProductController extends Controller
                 'description' => 'nullable|string',
                 'price' => 'numeric|min:0',
                 'sale_price' => 'nullable|numeric|min:0',
-                'sku' => 'string|unique:products,sku,' . $id,
                 'stock_quantity' => 'integer|min:0',
+                'image' => 'nullable|image|max:2048',
                 'images' => 'nullable|array',
                 'images.*' => 'image|max:2048',
                 'specifications' => 'nullable|array',
@@ -182,8 +190,23 @@ class ProductController extends Controller
                 'is_active' => 'boolean',
             ]);
 
-            // Upload new images if provided
-            if ($request->hasFile('images')) {
+            // Upload single image to Cloudinary if provided
+            if ($request->hasFile('image')) {
+                // Delete old images from Cloudinary
+                if ($product->images && is_array($product->images)) {
+                    foreach ($product->images as $image) {
+                        if (isset($image['public_id'])) {
+                            $this->cloudinaryService->delete($image['public_id']);
+                        }
+                    }
+                }
+
+                // Upload new image
+                $uploadedImage = $this->cloudinaryService->upload($request->file('image'), 'watch-store/products');
+                $validated['images'] = [$uploadedImage];
+            }
+            // Or upload multiple images
+            elseif ($request->hasFile('images')) {
                 // Delete old images from Cloudinary
                 if ($product->images && is_array($product->images)) {
                     foreach ($product->images as $image) {

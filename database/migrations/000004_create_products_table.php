@@ -16,10 +16,9 @@ return new class extends Migration
             $table->foreignId('category_id')->constrained()->onDelete('cascade');
             $table->foreignId('brand_id')->constrained()->onDelete('cascade');
             $table->string('name');
-            $table->string('slug')->unique();
             $table->text('description')->nullable();
-            $table->decimal('price', 10, 2);
-            $table->decimal('sale_price', 10, 2)->nullable();
+            $table->decimal('price', 15, 0);
+            $table->decimal('sale_price', 15, 0)->nullable();
             $table->string('sku')->unique();
             $table->integer('stock_quantity')->default(0);
             $table->json('images')->nullable();

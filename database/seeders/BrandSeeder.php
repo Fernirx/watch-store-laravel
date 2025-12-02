@@ -72,6 +72,9 @@ class BrandSeeder extends Seeder
         ];
 
         foreach ($brands as $brand) {
+            if (Brand::where('name', $brand['name'])->exists()) {
+                continue;
+            }
             Brand::create($brand);
         }
     }

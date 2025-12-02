@@ -19,7 +19,7 @@ const brandService = {
 
   // Tạo thương hiệu mới
   createBrand: async (brandData) => {
-    // brandData: { name, slug, description, logo (File), website, is_active }
+    // brandData: { name, description, logo (File), website, is_active }
     const formData = new FormData();
 
     Object.keys(brandData).forEach(key => {
@@ -46,7 +46,9 @@ const brandService = {
       }
     });
 
-    const response = await axios.put(`/brands/${id}`, formData, {
+    // Laravel không hỗ trợ PUT với multipart/form-data
+    // Sử dụng POST với _method=PUT
+    const response = await axios.post(`/brands/${id}`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },

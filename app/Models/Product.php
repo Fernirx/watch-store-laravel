@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str;
 
 class Product extends Model
 {
@@ -11,7 +10,6 @@ class Product extends Model
         'category_id',
         'brand_id',
         'name',
-        'slug',
         'description',
         'price',
         'sale_price',
@@ -31,8 +29,8 @@ class Product extends Model
     ];
 
     protected $casts = [
-        'price' => 'decimal:2',
-        'sale_price' => 'decimal:2',
+        'price' => 'decimal:0',
+        'sale_price' => 'decimal:0',
         'stock_quantity' => 'integer',
         'images' => 'array',
         'specifications' => 'array',
@@ -40,22 +38,11 @@ class Product extends Model
         'is_active' => 'boolean',
     ];
 
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::creating(function ($product) {
-            if (empty($product->slug)) {
-                $product->slug = Str::slug($product->name);
-            }
-        });
-
-        static::updating(function ($product) {
-            if ($product->isDirty('name') && empty($product->slug)) {
-                $product->slug = Str::slug($product->name);
-            }
-        });
-    }
+    protected $appends = [
+        'discount_percentage',
+        'in_stock',
+        'image_url',
+    ];
 
     public function category()
     {
@@ -78,5 +65,14 @@ class Product extends Model
     public function getInStockAttribute()
     {
         return $this->stock_quantity > 0;
+    }
+
+    public function getImageUrlAttribute()
+    {
+        // Return the first image URL if images array exists
+        if ($this->images && is_array($this->images) && count($this->images) > 0) {
+            return $this->images[0]['url'] ?? null;
+        }
+        return null;
     }
 }

@@ -109,116 +109,189 @@ const Brands = () => {
   };
 
   if (loading) {
-    return <div className="loading">Đang tải...</div>;
+    return (
+      <div className="loading">
+        <div className="spinner"></div>
+        <p>Đang tải thương hiệu...</p>
+      </div>
+    );
   }
 
   return (
     <div className="admin-brands">
-      <div className="admin-header">
-        <h1>Quản Lý Thương Hiệu</h1>
+      {/* Page Header */}
+      <div className="admin-page-header">
+        <div>
+          <h1>⭐ Quản Lý Thương Hiệu</h1>
+          <div className="admin-breadcrumb">
+            <a href="/admin">Dashboard</a>
+            <span>/</span>
+            <span>Thương hiệu</span>
+          </div>
+        </div>
         <button
           onClick={() => {
             resetForm();
             setShowForm(true);
           }}
-          className="btn-primary"
+          className="btn btn-primary"
         >
-          Thêm Thương Hiệu Mới
+          ➕ Thêm Thương Hiệu Mới
         </button>
       </div>
 
+      {/* Form Modal */}
       {showForm && (
-        <div className="admin-form-card">
-          <div className="form-header">
-            <h2>{editingId ? 'Sửa Thương Hiệu' : 'Thêm Thương Hiệu Mới'}</h2>
-            <button onClick={resetForm} className="btn-close">
-              ✕
-            </button>
-          </div>
-
-          <form onSubmit={handleSubmit} className="admin-form">
-            <div className="form-group">
-              <label htmlFor="name">
-                Tên thương hiệu <span className="required">*</span>
-              </label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-                className="form-control"
-              />
+        <div className="modal-overlay" onClick={(e) => e.target.className === 'modal-overlay' && resetForm()}>
+          <div className="modal">
+            <div className="modal-header">
+              <h2>{editingId ? '✏️ Sửa Thương Hiệu' : '➕ Thêm Thương Hiệu Mới'}</h2>
+              <button onClick={resetForm} className="modal-close">
+                ✕
+              </button>
             </div>
 
-            <div className="form-group">
-              <label htmlFor="description">Mô tả</label>
-              <textarea
-                id="description"
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                rows="3"
-                className="form-control"
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="image">Logo thương hiệu</label>
-              <input
-                type="file"
-                id="image"
-                name="image"
-                onChange={handleImageChange}
-                accept="image/*"
-                className="form-control"
-              />
-              {imagePreview && (
-                <div className="image-preview">
-                  <img src={imagePreview} alt="Preview" />
+            <form onSubmit={handleSubmit}>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label htmlFor="name" className="required">Tên thương hiệu</label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                    className="form-control"
+                    placeholder="Nhập tên thương hiệu..."
+                  />
                 </div>
-              )}
-            </div>
 
-            <div className="form-actions">
-              <button type="button" onClick={resetForm} className="btn-secondary">
-                Hủy
-              </button>
-              <button type="submit" className="btn-primary">
-                {editingId ? 'Cập nhật' : 'Tạo mới'}
-              </button>
-            </div>
-          </form>
+                <div className="form-group">
+                  <label htmlFor="description">Mô tả</label>
+                  <textarea
+                    id="description"
+                    name="description"
+                    value={formData.description}
+                    onChange={handleChange}
+                    rows="3"
+                    className="form-control"
+                    placeholder="Nhập mô tả thương hiệu..."
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="image">Logo thương hiệu</label>
+                  <input
+                    type="file"
+                    id="image"
+                    name="image"
+                    onChange={handleImageChange}
+                    accept="image/*"
+                    className="form-control"
+                  />
+                  {imagePreview && (
+                    <div style={{ marginTop: '1rem' }}>
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        style={{
+                          width: '100%',
+                          maxWidth: '300px',
+                          height: '200px',
+                          objectFit: 'cover',
+                          borderRadius: '0.5rem',
+                          border: '2px solid #e2e8f0'
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button type="button" onClick={resetForm} className="btn btn-secondary">
+                  ✕ Hủy
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  {editingId ? '💾 Cập nhật' : '✓ Tạo mới'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
-      <div className="admin-grid">
+      {/* Brands Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
         {brands.length === 0 ? (
-          <p className="no-data">Chưa có thương hiệu nào</p>
+          <div className="empty-state" style={{ gridColumn: '1 / -1' }}>
+            <div className="empty-state-icon">⭐</div>
+            <h3>Chưa có thương hiệu nào</h3>
+            <p>Hãy thêm thương hiệu đầu tiên cho cửa hàng</p>
+            <button
+              onClick={() => {
+                resetForm();
+                setShowForm(true);
+              }}
+              className="btn btn-primary"
+            >
+              ➕ Thêm Thương Hiệu
+            </button>
+          </div>
         ) : (
           brands.map((brand) => (
-            <div key={brand.id} className="admin-card">
+            <div
+              key={brand.id}
+              style={{
+                background: 'white',
+                borderRadius: '1rem',
+                overflow: 'hidden',
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                border: '1px solid #e2e8f0',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.transform = 'translateY(-4px)';
+                e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.12)';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
+              }}
+            >
               {brand.image_url && (
-                <div className="card-image">
-                  <img src={brand.image_url} alt={brand.name} />
+                <div style={{ width: '100%', height: '180px', overflow: 'hidden', background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <img
+                    src={brand.image_url}
+                    alt={brand.name}
+                    style={{ maxWidth: '80%', maxHeight: '80%', objectFit: 'contain' }}
+                  />
                 </div>
               )}
-              <div className="card-content">
-                <h3>{brand.name}</h3>
-                {brand.description && <p>{brand.description}</p>}
-                <div className="card-actions">
+              <div style={{ padding: '1.5rem' }}>
+                <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.25rem', fontWeight: '700', color: '#1e293b' }}>
+                  {brand.name}
+                </h3>
+                {brand.description && (
+                  <p style={{ margin: '0 0 1rem 0', color: '#64748b', fontSize: '0.9375rem' }}>
+                    {brand.description}
+                  </p>
+                )}
+                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
                   <button
                     onClick={() => handleEdit(brand)}
-                    className="btn-icon btn-edit"
+                    className="btn btn-secondary btn-sm"
+                    style={{ flex: 1 }}
                   >
-                    Sửa
+                    ✏️ Sửa
                   </button>
                   <button
                     onClick={() => handleDelete(brand.id)}
-                    className="btn-icon btn-delete"
+                    className="btn btn-danger btn-sm"
+                    style={{ flex: 1 }}
                   >
-                    Xóa
+                    🗑️ Xóa
                   </button>
                 </div>
               </div>

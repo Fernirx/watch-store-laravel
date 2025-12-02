@@ -52,30 +52,42 @@ const Products = () => {
   };
 
   if (loading) {
-    return <div className="loading">Đang tải...</div>;
+    return (
+      <div className="loading">
+        <div className="spinner"></div>
+        <p>Đang tải sản phẩm...</p>
+      </div>
+    );
   }
 
   return (
     <div className="admin-products">
-      <div className="admin-header">
-        <h1>Quản Lý Sản Phẩm</h1>
-        <Link to="/admin/products/create" className="btn-primary">
-          Thêm Sản Phẩm Mới
+      {/* Page Header */}
+      <div className="admin-page-header">
+        <div>
+          <h1>📦 Quản Lý Sản Phẩm</h1>
+          <div className="admin-breadcrumb">
+            <Link to="/admin">Dashboard</Link>
+            <span>/</span>
+            <span>Sản phẩm</span>
+          </div>
+        </div>
+        <Link to="/admin/products/create" className="btn btn-primary">
+          ➕ Thêm Sản Phẩm Mới
         </Link>
       </div>
 
-      <div className="admin-filters">
-        <form onSubmit={handleSearch} className="search-form">
-          <input
-            type="text"
-            placeholder="Tìm kiếm sản phẩm..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="search-input"
-          />
-          <button type="submit" className="btn-search">
-            Tìm kiếm
-          </button>
+      {/* Search Bar */}
+      <div style={{ marginBottom: '1.5rem' }}>
+        <form onSubmit={handleSearch}>
+          <div className="search-bar">
+            <input
+              type="text"
+              placeholder="Tìm kiếm theo tên sản phẩm..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
         </form>
       </div>
 
@@ -98,30 +110,42 @@ const Products = () => {
           <tbody>
             {products.length === 0 ? (
               <tr>
-                <td colSpan="10" className="text-center">
-                  Không có sản phẩm nào
+                <td colSpan="10" style={{ textAlign: 'center', padding: '3rem' }}>
+                  <div className="empty-state">
+                    <div className="empty-state-icon">📦</div>
+                    <h3>Chưa có sản phẩm nào</h3>
+                    <p>Hãy thêm sản phẩm đầu tiên của bạn</p>
+                    <Link to="/admin/products/create" className="btn btn-primary">
+                      ➕ Thêm Sản Phẩm
+                    </Link>
+                  </div>
                 </td>
               </tr>
             ) : (
               products.map((product) => (
                 <tr key={product.id}>
-                  <td>{product.id}</td>
+                  <td style={{ fontWeight: '600', color: '#64748b' }}>#{product.id}</td>
                   <td>
-                    {product.image_url && (
+                    {product.image_url ? (
                       <img
                         src={product.image_url}
                         alt={product.name}
-                        className="table-image"
                       />
+                    ) : (
+                      <div style={{ width: '48px', height: '48px', background: '#f1f5f9', borderRadius: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        📷
+                      </div>
                     )}
                   </td>
-                  <td>{product.name}</td>
+                  <td style={{ fontWeight: '600' }}>{product.name}</td>
                   <td>{product.category?.name || '-'}</td>
                   <td>{product.brand?.name || '-'}</td>
-                  <td>{product.price.toLocaleString('vi-VN')} ₫</td>
-                  <td>
+                  <td style={{ fontWeight: '600', color: '#667eea' }}>
+                    {product.price.toLocaleString('vi-VN')}₫
+                  </td>
+                  <td style={{ fontWeight: '600', color: '#ef4444' }}>
                     {product.sale_price
-                      ? `${product.sale_price.toLocaleString('vi-VN')} ₫`
+                      ? `${product.sale_price.toLocaleString('vi-VN')}₫`
                       : '-'}
                   </td>
                   <td>
@@ -145,22 +169,22 @@ const Products = () => {
                           : 'badge badge-secondary'
                       }
                     >
-                      {product.is_active ? 'Hoạt động' : 'Ngừng'}
+                      {product.is_active ? '✓ Hoạt động' : '✕ Ngừng'}
                     </span>
                   </td>
                   <td>
-                    <div className="action-buttons">
+                    <div className="table-actions">
                       <Link
                         to={`/admin/products/edit/${product.id}`}
-                        className="btn-icon btn-edit"
+                        className="btn btn-secondary btn-sm"
                       >
-                        Sửa
+                        ✏️ Sửa
                       </Link>
                       <button
                         onClick={() => handleDelete(product.id)}
-                        className="btn-icon btn-delete"
+                        className="btn btn-danger btn-sm"
                       >
-                        Xóa
+                        🗑️ Xóa
                       </button>
                     </div>
                   </td>

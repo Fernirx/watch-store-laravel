@@ -166,7 +166,7 @@ const ProductList = () => {
                     <Link to={`/products/${product.id}`}>
                       <div className="product-image">
                         <img
-                          src={product.images?.[0]?.image_url || '/placeholder.jpg'}
+                          src={product.image_url || '/placeholder.jpg'}
                           alt={product.name}
                         />
                         {product.sale_price && (
