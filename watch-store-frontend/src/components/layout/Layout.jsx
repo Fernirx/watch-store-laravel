@@ -1,8 +1,16 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, Navigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import Header from './Header';
 import Footer from './Footer';
 
 const Layout = () => {
+  const { user, isAuthenticated, loading } = useAuth();
+
+  // Redirect admin to admin panel
+  if (!loading && isAuthenticated && user?.role === 'ADMIN') {
+    return <Navigate to="/admin" replace />;
+  }
+
   return (
     <div className="app-layout">
       <Header />

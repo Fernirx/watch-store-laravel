@@ -50,19 +50,22 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });
 
-    // ========== Admin Routes (Categories & Brands) ==========
-    // TODO: Add admin middleware
-    Route::post('/categories', [CategoryController::class, 'store']);
-    Route::put('/categories/{id}', [CategoryController::class, 'update']);
-    Route::delete('/categories/{id}', [CategoryController::class, 'destroy']);
+    // ========== Admin Routes (Categories & Brands & Products & Orders) ==========
+    Route::middleware('role:ADMIN')->group(function () {
+        Route::post('/categories', [CategoryController::class, 'store']);
+        Route::put('/categories/{id}', [CategoryController::class, 'update']);
+        Route::delete('/categories/{id}', [CategoryController::class, 'destroy']);
 
-    Route::post('/brands', [BrandController::class, 'store']);
-    Route::put('/brands/{id}', [BrandController::class, 'update']);
-    Route::delete('/brands/{id}', [BrandController::class, 'destroy']);
+        Route::post('/brands', [BrandController::class, 'store']);
+        Route::put('/brands/{id}', [BrandController::class, 'update']);
+        Route::delete('/brands/{id}', [BrandController::class, 'destroy']);
 
-    Route::post('/products', [ProductController::class, 'store']);
-    Route::put('/products/{id}', [ProductController::class, 'update']);
-    Route::delete('/products/{id}', [ProductController::class, 'destroy']);
+        Route::post('/products', [ProductController::class, 'store']);
+        Route::put('/products/{id}', [ProductController::class, 'update']);
+        Route::delete('/products/{id}', [ProductController::class, 'destroy']);
+
+        Route::put('/orders/{id}/status', [OrderController::class, 'updateStatus']);
+    });
 
     // ========== User Cart ==========
     Route::get('/cart', [CartController::class, 'index']);

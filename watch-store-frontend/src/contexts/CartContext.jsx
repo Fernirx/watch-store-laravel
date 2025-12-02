@@ -14,10 +14,12 @@ export const CartProvider = ({ children }) => {
 
     try {
       setLoading(true);
-      const data = await cartService.getCart();
-      setCart(data.data);
+      const response = await cartService.getCart();
+      // response.data contains { cart, subtotal, items_count }
+      setCart(response.data);
     } catch (error) {
       console.error('Error fetching cart:', error);
+      setCart(null);
     } finally {
       setLoading(false);
     }
@@ -55,12 +57,14 @@ export const CartProvider = ({ children }) => {
     return data;
   };
 
-  const cartItemsCount = cart?.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
+  const cartItemsCount = cart?.items_count || 0;
+  const subtotal = cart?.subtotal || 0;
 
   const value = {
     cart,
     loading,
     cartItemsCount,
+    subtotal,
     fetchCart,
     addToCart,
     updateCartItem,

@@ -24,8 +24,12 @@ const GoogleCallback = () => {
           setUser(user);
         }
 
-        // Redirect về trang chủ
-        navigate('/', { replace: true });
+        // Redirect based on role
+        if (user.role === 'ADMIN') {
+          navigate('/admin', { replace: true });
+        } else {
+          navigate('/', { replace: true });
+        }
       } catch (error) {
         console.error('Error parsing Google callback:', error);
         navigate('/login', { replace: true });

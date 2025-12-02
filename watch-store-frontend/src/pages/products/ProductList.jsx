@@ -12,10 +12,11 @@ const ProductList = () => {
   const selectedCategory = searchParams.get('category');
   const selectedBrand = searchParams.get('brand');
   const searchQuery = searchParams.get('search');
+  const stockFilter = searchParams.get('stock');
 
   useEffect(() => {
     fetchData();
-  }, [selectedCategory, selectedBrand, searchQuery]);
+  }, [selectedCategory, selectedBrand, searchQuery, stockFilter]);
 
   const fetchData = async () => {
     try {
@@ -24,6 +25,7 @@ const ProductList = () => {
       if (selectedCategory) params.category_id = selectedCategory;
       if (selectedBrand) params.brand_id = selectedBrand;
       if (searchQuery) params.search = searchQuery;
+      if (stockFilter === 'in_stock') params.min_stock = 1;
 
       const [productsData, categoriesData, brandsData] = await Promise.all([
         productService.getProducts(params),
@@ -31,7 +33,8 @@ const ProductList = () => {
         productService.getBrands(),
       ]);
 
-      setProducts(productsData.data || []);
+      // productsData.data chứa pagination object, productsData.data.data chứa mảng products
+      setProducts(productsData.data?.data || []);
       setCategories(categoriesData.data || []);
       setBrands(brandsData.data || []);
     } catch (error) {
@@ -57,6 +60,16 @@ const ProductList = () => {
       params.set('brand', brandId);
     } else {
       params.delete('brand');
+    }
+    setSearchParams(params);
+  };
+
+  const handleStockFilter = (stockStatus) => {
+    const params = new URLSearchParams(searchParams);
+    if (stockStatus) {
+      params.set('stock', stockStatus);
+    } else {
+      params.delete('stock');
     }
     setSearchParams(params);
   };
@@ -116,6 +129,28 @@ const ProductList = () => {
                 ))}
               </ul>
             </div>
+
+            <div className="filter-section">
+              <h3>Tình Trạng</h3>
+              <ul className="filter-list">
+                <li>
+                  <button
+                    className={!stockFilter ? 'active' : ''}
+                    onClick={() => handleStockFilter(null)}
+                  >
+                    Tất cả
+                  </button>
+                </li>
+                <li>
+                  <button
+                    className={stockFilter === 'in_stock' ? 'active' : ''}
+                    onClick={() => handleStockFilter('in_stock')}
+                  >
+                    Còn hàng
+                  </button>
+                </li>
+              </ul>
+            </div>
           </aside>
 
           {/* Products Grid */}
@@ -137,8 +172,11 @@ const ProductList = () => {
                         {product.sale_price && (
                           <span className="sale-badge">Sale</span>
                         )}
-                        {product.stock === 0 && (
+                        {product.stock_quantity === 0 && (
                           <span className="out-of-stock-badge">Hết hàng</span>
+                        )}
+                        {product.stock_quantity > 0 && product.stock_quantity <= 5 && (
+                          <span className="low-stock-badge">Còn {product.stock_quantity}</span>
                         )}
                       </div>
                       <div className="product-info">

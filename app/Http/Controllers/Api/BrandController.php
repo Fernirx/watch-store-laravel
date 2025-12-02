@@ -15,10 +15,6 @@ class BrandController extends Controller
     public function __construct(CloudinaryService $cloudinaryService)
     {
         $this->cloudinaryService = $cloudinaryService;
-
-        // Only admin can create, update, delete
-        $this->middleware('auth:sanctum')->except(['index', 'show']);
-        $this->middleware('role:admin')->only(['store', 'update', 'destroy']);
     }
 
     public function index()

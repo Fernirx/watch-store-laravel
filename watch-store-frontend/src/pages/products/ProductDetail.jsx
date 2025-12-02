@@ -126,8 +126,8 @@ const ProductDetail = () => {
             </div>
 
             <div className="stock-info">
-              {product.stock > 0 ? (
-                <span className="in-stock">Còn hàng ({product.stock} sản phẩm)</span>
+              {product.stock_quantity > 0 ? (
+                <span className="in-stock">Còn hàng ({product.stock_quantity} sản phẩm)</span>
               ) : (
                 <span className="out-of-stock">Hết hàng</span>
               )}
@@ -140,7 +140,7 @@ const ProductDetail = () => {
               </div>
             )}
 
-            {product.stock > 0 && (
+            {product.stock_quantity > 0 ? (
               <div className="purchase-section">
                 <div className="quantity-selector">
                   <label>Số lượng:</label>
@@ -154,13 +154,13 @@ const ProductDetail = () => {
                     <input
                       type="number"
                       value={quantity}
-                      onChange={(e) => setQuantity(Math.max(1, Math.min(product.stock, parseInt(e.target.value) || 1)))}
+                      onChange={(e) => setQuantity(Math.max(1, Math.min(product.stock_quantity, parseInt(e.target.value) || 1)))}
                       min="1"
-                      max={product.stock}
+                      max={product.stock_quantity}
                     />
                     <button
-                      onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                      disabled={quantity >= product.stock}
+                      onClick={() => setQuantity(Math.min(product.stock_quantity, quantity + 1))}
+                      disabled={quantity >= product.stock_quantity}
                     >
                       +
                     </button>
@@ -175,6 +175,13 @@ const ProductDetail = () => {
                     Mua Ngay
                   </button>
                 </div>
+              </div>
+            ) : (
+              <div className="out-of-stock-message">
+                <p>Sản phẩm hiện đã hết hàng</p>
+                <button onClick={() => window.history.back()} className="btn-back">
+                  Quay Lại
+                </button>
               </div>
             )}
           </div>

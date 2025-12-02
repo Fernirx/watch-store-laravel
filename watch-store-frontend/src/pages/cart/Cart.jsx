@@ -4,7 +4,7 @@ import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
 
 const Cart = () => {
-  const { cart, loading, updateCartItem, removeCartItem, clearCart, fetchCart } = useCart();
+  const { cart, loading, subtotal, updateCartItem, removeCartItem, clearCart, fetchCart } = useCart();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
@@ -49,11 +49,8 @@ const Cart = () => {
     return <div className="loading">Đang tải giỏ hàng...</div>;
   }
 
-  const cartItems = cart?.items || [];
-  const subtotal = cartItems.reduce((sum, item) => {
-    const price = item.product.sale_price || item.product.price;
-    return sum + parseFloat(price) * item.quantity;
-  }, 0);
+  // cart.cart contains the actual cart with items
+  const cartItems = cart?.cart?.items || [];
 
   if (cartItems.length === 0) {
     return (
@@ -118,11 +115,11 @@ const Cart = () => {
                       value={item.quantity}
                       onChange={(e) => handleQuantityChange(item.id, parseInt(e.target.value) || 1)}
                       min="1"
-                      max={product.stock}
+                      max={product.stock_quantity}
                     />
                     <button
                       onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                      disabled={item.quantity >= product.stock}
+                      disabled={item.quantity >= product.stock_quantity}
                     >
                       +
                     </button>

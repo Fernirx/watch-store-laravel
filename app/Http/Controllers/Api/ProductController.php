@@ -15,10 +15,6 @@ class ProductController extends Controller
     public function __construct(CloudinaryService $cloudinaryService)
     {
         $this->cloudinaryService = $cloudinaryService;
-
-        // Only admin can create, update, delete
-        $this->middleware('auth:sanctum')->except(['index', 'show']);
-        $this->middleware('role:admin')->only(['store', 'update', 'destroy']);
     }
 
     public function index(Request $request)
@@ -58,6 +54,11 @@ class ProductController extends Controller
             // Search by name
             if ($request->has('search')) {
                 $query->where('name', 'like', '%' . $request->search . '%');
+            }
+
+            // Filter by stock
+            if ($request->has('min_stock')) {
+                $query->where('stock_quantity', '>=', $request->min_stock);
             }
 
             // Sort

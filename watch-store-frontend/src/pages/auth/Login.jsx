@@ -39,8 +39,15 @@ const Login = () => {
     setLoading(true);
 
     try {
-      await login(formData.email, formData.password);
-      navigate('/');
+      const response = await login(formData.email, formData.password);
+      const userRole = response?.data?.user?.role;
+
+      // Redirect based on role
+      if (userRole === 'ADMIN') {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
     } catch (err) {
       console.log('Login error:', err.response); // Debug
 

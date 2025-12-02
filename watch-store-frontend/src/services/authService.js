@@ -72,6 +72,16 @@ const authService = {
     return response.data.data.user;
   },
 
+  // Refresh token
+  refreshToken: async () => {
+    const response = await axios.post('/refresh');
+    if (response.data.success) {
+      localStorage.setItem('token', response.data.data.access_token);
+      localStorage.setItem('user', JSON.stringify(response.data.data.user));
+    }
+    return response.data;
+  },
+
   // Kiểm tra đã đăng nhập chưa
   isAuthenticated: () => {
     return !!localStorage.getItem('token');
@@ -81,6 +91,12 @@ const authService = {
   getUser: () => {
     const user = localStorage.getItem('user');
     return user ? JSON.parse(user) : null;
+  },
+
+  // Kiểm tra có phải admin không
+  isAdmin: () => {
+    const user = authService.getUser();
+    return user?.role === 'admin';
   },
 };
 

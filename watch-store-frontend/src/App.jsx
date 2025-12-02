@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
 import Layout from './components/layout/Layout';
+import AdminLayout from './components/layout/AdminLayout';
 import ProtectedRoute from './components/common/ProtectedRoute';
 
 // Auth Pages
@@ -23,6 +24,15 @@ import Checkout from './pages/cart/Checkout';
 // Orders
 import OrderList from './pages/orders/OrderList';
 import OrderDetail from './pages/orders/OrderDetail';
+
+// Admin Pages
+import AdminDashboard from './pages/admin/Dashboard';
+import AdminProducts from './pages/admin/Products';
+import AdminProductForm from './pages/admin/ProductForm';
+import AdminCategories from './pages/admin/Categories';
+import AdminBrands from './pages/admin/Brands';
+import AdminOrders from './pages/admin/Orders';
+import AdminOrderDetail from './pages/admin/OrderDetail';
 
 import './App.css';
 
@@ -78,6 +88,25 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+            </Route>
+
+            {/* Admin Routes */}
+            <Route
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/products" element={<AdminProducts />} />
+              <Route path="/admin/products/create" element={<AdminProductForm />} />
+              <Route path="/admin/products/edit/:id" element={<AdminProductForm />} />
+              <Route path="/admin/categories" element={<AdminCategories />} />
+              <Route path="/admin/brands" element={<AdminBrands />} />
+              <Route path="/admin/orders" element={<AdminOrders />} />
+              <Route path="/admin/orders/:id" element={<AdminOrderDetail />} />
+              <Route path="/admin/users" element={<div>Users Management (Coming Soon)</div>} />
             </Route>
           </Routes>
         </CartProvider>

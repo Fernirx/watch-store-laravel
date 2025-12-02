@@ -5,14 +5,15 @@ import { useAuth } from '../../contexts/AuthContext';
 import orderService from '../../services/orderService';
 
 const Checkout = () => {
-  const { cart, clearCart } = useCart();
+  const { cart, subtotal, fetchCart } = useCart();
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    customer_name: '',
-    customer_email: '',
-    customer_phone: '',
+    shipping_address: '',
+    shipping_phone: '',
+    payment_method: 'cod',
+    notes: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -23,18 +24,19 @@ const Checkout = () => {
       return;
     }
 
-    if (!cart || cart.items?.length === 0) {
+    fetchCart();
+
+    if (!cart || cart?.cart?.items?.length === 0) {
       navigate('/cart');
       return;
     }
 
     // Pre-fill với thông tin user
     if (user) {
-      setFormData({
-        customer_name: user.name || '',
-        customer_email: user.email || '',
-        customer_phone: user.phone || '',
-      });
+      setFormData(prev => ({
+        ...prev,
+        shipping_phone: user.phone || '',
+      }));
     }
   }, [isAuthenticated, cart, user]);
 
@@ -51,19 +53,7 @@ const Checkout = () => {
     setLoading(true);
 
     try {
-      const orderData = {
-        ...formData,
-        items: cart.items.map((item) => ({
-          product_id: item.product_id,
-          quantity: item.quantity,
-          price: item.product.sale_price || item.product.price,
-        })),
-      };
-
-      const response = await orderService.createOrder(orderData);
-
-      // Xóa giỏ hàng sau khi đặt hàng thành công
-      await clearCart();
+      const response = await orderService.createOrder(formData);
 
       // Chuyển đến trang chi tiết đơn hàng
       navigate(`/orders/${response.data.id}`, {
@@ -76,15 +66,13 @@ const Checkout = () => {
     }
   };
 
-  if (!cart || cart.items?.length === 0) {
+  if (!cart || cart?.cart?.items?.length === 0) {
     return null;
   }
 
-  const cartItems = cart.items || [];
-  const subtotal = cartItems.reduce((sum, item) => {
-    const price = item.product.sale_price || item.product.price;
-    return sum + parseFloat(price) * item.quantity;
-  }, 0);
+  const cartItems = cart?.cart?.items || [];
+  const shippingFee = 30000; // 30,000 VND
+  const total = subtotal + shippingFee;
 
   return (
     <div className="checkout-page">
@@ -100,37 +88,51 @@ const Checkout = () => {
 
             <form onSubmit={handleSubmit}>
               <div className="form-group">
-                <label>Họ và tên *</label>
-                <input
-                  type="text"
-                  name="customer_name"
-                  value={formData.customer_name}
+                <label>Địa chỉ giao hàng *</label>
+                <textarea
+                  name="shipping_address"
+                  value={formData.shipping_address}
                   onChange={handleChange}
                   required
-                  placeholder="Nhập họ tên"
+                  rows="3"
+                  placeholder="Nhập địa chỉ đầy đủ để giao hàng"
                 />
               </div>
 
               <div className="form-group">
-                <label>Email *</label>
-                <input
-                  type="email"
-                  name="customer_email"
-                  value={formData.customer_email}
-                  onChange={handleChange}
-                  required
-                  placeholder="Nhập email"
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Số điện thoại</label>
+                <label>Số điện thoại *</label>
                 <input
                   type="tel"
-                  name="customer_phone"
-                  value={formData.customer_phone}
+                  name="shipping_phone"
+                  value={formData.shipping_phone}
                   onChange={handleChange}
+                  required
                   placeholder="Nhập số điện thoại"
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Phương thức thanh toán *</label>
+                <select
+                  name="payment_method"
+                  value={formData.payment_method}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="cod">Thanh toán khi nhận hàng (COD)</option>
+                  <option value="bank_transfer">Chuyển khoản ngân hàng</option>
+                  <option value="credit_card">Thẻ tín dụng</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label>Ghi chú</label>
+                <textarea
+                  name="notes"
+                  value={formData.notes}
+                  onChange={handleChange}
+                  rows="2"
+                  placeholder="Ghi chú cho đơn hàng (không bắt buộc)"
                 />
               </div>
 
@@ -169,9 +171,14 @@ const Checkout = () => {
                 <span>{subtotal.toLocaleString('vi-VN')}đ</span>
               </div>
 
+              <div className="summary-row">
+                <span>Phí vận chuyển:</span>
+                <span>{shippingFee.toLocaleString('vi-VN')}đ</span>
+              </div>
+
               <div className="summary-row total">
                 <span>Tổng cộng:</span>
-                <span>{subtotal.toLocaleString('vi-VN')}đ</span>
+                <span>{total.toLocaleString('vi-VN')}đ</span>
               </div>
             </div>
           </div>

@@ -21,7 +21,8 @@ const HomePage = () => {
         productService.getBrands(),
       ]);
 
-      setProducts(productsData.data || []);
+      // productsData.data chứa pagination object, productsData.data.data chứa mảng products
+      setProducts(productsData.data?.data || []);
       setCategories(categoriesData.data || []);
       setBrands(brandsData.data || []);
     } catch (error) {
@@ -79,6 +80,12 @@ const HomePage = () => {
                   />
                   {product.sale_price && (
                     <span className="sale-badge">Sale</span>
+                  )}
+                  {product.stock_quantity === 0 && (
+                    <span className="out-of-stock-badge">Hết hàng</span>
+                  )}
+                  {product.stock_quantity > 0 && product.stock_quantity <= 5 && (
+                    <span className="low-stock-badge">Còn {product.stock_quantity}</span>
                   )}
                 </div>
                 <div className="product-info">
