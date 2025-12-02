@@ -408,7 +408,15 @@ class AuthController extends Controller
     public function googleCallback()
     {
         try {
-            $googleUser = Socialite::driver('google')->stateless()->user();
+            // Disable SSL verification for development (Windows)
+            $guzzleClient = new \GuzzleHttp\Client([
+                'verify' => false,
+            ]);
+
+            $googleUser = Socialite::driver('google')
+                ->setHttpClient($guzzleClient)
+                ->stateless()
+                ->user();
 
             // Check if user exists
             $user = User::where('email', $googleUser->getEmail())->first();
@@ -440,15 +448,11 @@ class AuthController extends Controller
 
             $token = $user->createToken('auth_token')->plainTextToken;
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Google login successful',
-                'data' => [
-                    'user' => $user,
-                    'access_token' => $token,
-                    'token_type' => 'Bearer',
-                ],
-            ], 200);
+            // Redirect to frontend with token
+            $frontendUrl = env('FRONTEND_URL', 'http://localhost:5173');
+            return redirect()->away(
+                $frontendUrl . '/auth/google/callback?token=' . $token . '&user=' . urlencode(json_encode($user))
+            );
 
         } catch (\Exception $e) {
             return response()->json([
